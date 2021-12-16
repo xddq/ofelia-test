@@ -1,0 +1,38 @@
+version: "3"
+services:
+  # all other containers have to be started BEFORE ofelia for it to notice the
+  # labels!
+  ofelia:
+    image: mcuadros/ofelia:latest
+    depends_on:
+      - nginx
+      - alpine
+    command: daemon --docker
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+    labels:
+      ofelia.job-local.my-test-job.schedule: "@every 5s"
+      ofelia.job-local.my-test-job.command: "date"
+
+  alpine:
+    # image: docker:20-dind
+    build:
+      context: .
+      dockerfile: dind-alpine-bash-dockerfile
+    volumes:
+      # enables container to spawn/restart/control docker containers.
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+      # copies bash script with commands into path.
+      - ./restart.sh:/usr/local/bin/restart.sh
+    command: "tail -f /dev/null"
+    labels:
+      ofelia.enabled: "true"
+      ofelia.job-exec.recreate-nginx.schedule: "@every 5s"
+      ofelia.job-exec.recreate-nginx.command: "bash restart.sh"
+
+  nginx:
+    image: nginx
+    labels:
+      ofelia.enabled: "true"
+      ofelia.job-exec.datecron.schedule: "@every 5s"
+      ofelia.job-exec.datecron.command: "curl localhost"
