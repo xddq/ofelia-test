@@ -27,7 +27,7 @@ services:
     command: "tail -f /dev/null"
     labels:
       ofelia.enabled: "true"
-      ofelia.job-exec.recreate-nginx.schedule: "@every 5s"
+      ofelia.job-exec.recreate-nginx.schedule: "@every 10s"
       ofelia.job-exec.recreate-nginx.command: "bash restart.sh"
 
   nginx:
